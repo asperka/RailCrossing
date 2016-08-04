@@ -3,6 +3,8 @@
 enum CONSTANTS {
     SWITCH_1 = 2
   , SWITCH_2 = 4
+  , SWITCH_B1 = 10
+  , SWITCH_B2 = 5
   , LED = 6
   , DIR_B = 13
   , VEL_B = 11
@@ -10,7 +12,10 @@ enum CONSTANTS {
 
 int g_StateSW1 = HIGH;
 int g_StateSW2 = HIGH;
+int g_StateSWB1 = HIGH;
+int g_StateSWB2 = HIGH;
 int g_NrTrains = 0;
+int g_NrTrainsB = 0;
 bool g_LED = LOW;
 
 
@@ -26,6 +31,8 @@ void setup()
   pinMode(LED, OUTPUT);
   pinMode(SWITCH_1,INPUT_PULLUP);
   pinMode(SWITCH_2,INPUT_PULLUP);
+  pinMode(SWITCH_B1,INPUT_PULLUP);
+  pinMode(SWITCH_B2,INPUT_PULLUP);
   digitalWrite(6, HIGH);
   Serial.begin(9600);
   g_nextLEDONTimer = millis () + 500;
@@ -89,7 +96,31 @@ void loop()
             Serial.println (buffer);
         }
     }
-    if (0 == g_NrTrains)
+    l_State = digitalRead(SWITCH_B1);
+    if (l_State != g_StateSWB1)
+    {
+        g_StateSWB1 = l_State;
+        if (LOW == l_State)
+        {
+            --g_NrTrainsB;
+            char buffer[20];
+            sprintf (buffer, "TrainB - %d", g_NrTrainsB);
+            Serial.println (buffer);
+        }
+    }
+    l_State = digitalRead(SWITCH_B2);
+    if (l_State != g_StateSWB2)
+    {
+        g_StateSWB2 = l_State;
+        if (LOW == l_State)
+        {
+            ++g_NrTrainsB;
+            char buffer[20];
+            sprintf (buffer, "TrainB - %d", g_NrTrainsB);
+            Serial.println (buffer);
+        }
+    }
+    if ((0 == g_NrTrains) && (0 == g_NrTrainsB))
     {
         g_LED = LOW;
         if (!g_gateOpen)
