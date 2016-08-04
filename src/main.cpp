@@ -4,6 +4,8 @@ enum CONSTANTS {
     SWITCH_1 = 2
   , SWITCH_2 = 4
   , LED = 6
+  , DIR_B = 13
+  , VEL_B = 11
 };
 
 int g_StateSW1 = HIGH;
@@ -12,38 +14,57 @@ int g_NrTrains = 0;
 bool g_LED = LOW;
 
 
-unsigned long g_nextLEDTimer = 0;
+unsigned long g_nextLEDONTimer = 0;
+unsigned long g_nextLEDOFFTimer = 0;
+unsigned long g_motorOffTimer = 0;
+bool g_gateOpen = true;
 
 void setup()
 {
   // initialize LED digital pin as an output.
+  pinMode(DIR_B, OUTPUT);
   pinMode(LED, OUTPUT);
   pinMode(SWITCH_1,INPUT_PULLUP);
   pinMode(SWITCH_2,INPUT_PULLUP);
   digitalWrite(6, HIGH);
   Serial.begin(9600);
-  g_nextLEDTimer = millis () + 500;
+  g_nextLEDONTimer = millis () + 500;
+  g_nextLEDOFFTimer = millis () + 1000;
+
+  digitalWrite (LED, LOW);
+
+  // open gates
+  digitalWrite (DIR_B, HIGH);
+  analogWrite (VEL_B, 200);
+  delay (500);
+  analogWrite (VEL_B, 0);
 }
 
 void BlinkLED ()
 {
-    if (millis () > g_nextLEDTimer)
+    if (millis () > g_nextLEDONTimer)
     {
-        if (HIGH == g_LED)
-        {
-            g_LED = LOW;
-        }
-        else if ((0 != g_NrTrains) && (LOW == g_LED))
-        {
-            g_LED = HIGH;
-        }
         digitalWrite(LED, g_LED);
-        g_nextLEDTimer = millis () + 500;
+        g_nextLEDONTimer = millis () + 1000;
+    }
+    if (millis () > g_nextLEDOFFTimer)
+    {
+        digitalWrite(LED, LOW);
+        g_nextLEDOFFTimer = millis () + 1000;
     }
 }
+
 void loop()
 {
     BlinkLED ();
+    if (0 != g_motorOffTimer)
+    {
+        if (millis () > g_motorOffTimer)
+        {
+            analogWrite (VEL_B, 0);
+            g_motorOffTimer = 0;
+        }
+    }
     int l_State = digitalRead(SWITCH_1);
     if (l_State != g_StateSW1)
     {
@@ -66,6 +87,28 @@ void loop()
             char buffer[20];
             sprintf (buffer, "Train - %d", g_NrTrains);
             Serial.println (buffer);
+        }
+    }
+    if (0 == g_NrTrains)
+    {
+        g_LED = LOW;
+        if (!g_gateOpen)
+        {
+            g_gateOpen = true;
+            digitalWrite (DIR_B, HIGH);
+            analogWrite (VEL_B, 255);
+            g_motorOffTimer = millis () + 500;
+        }
+    }
+    else
+    {
+        g_LED = HIGH;
+        if (g_gateOpen)
+        {
+            g_gateOpen = false;
+            digitalWrite (DIR_B, LOW);
+            analogWrite (VEL_B, 255);
+            g_motorOffTimer = millis () + 500;
         }
     }
   // // turn the LED on (HIGH is the voltage level)
