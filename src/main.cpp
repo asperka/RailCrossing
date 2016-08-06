@@ -1,11 +1,12 @@
 #include "Arduino.h"
 
 enum CONSTANTS {
-    SWITCH_1 = 2
-  , SWITCH_2 = 4
-  , SWITCH_B1 = 10
-  , SWITCH_B2 = 5
-  , LED = 6
+    SWITCH_1 = 5
+  , SWITCH_2 = 6
+  , SWITCH_B1 = 7
+  , SWITCH_B2 = 10
+  , LED1 = 2
+  , LED2 = 4
   , DIR_B = 13
   , VEL_B = 11
 };
@@ -28,7 +29,8 @@ void setup()
 {
   // initialize LED digital pin as an output.
   pinMode(DIR_B, OUTPUT);
-  pinMode(LED, OUTPUT);
+  pinMode(LED1, OUTPUT);
+  pinMode(LED2, OUTPUT);
   pinMode(SWITCH_1,INPUT_PULLUP);
   pinMode(SWITCH_2,INPUT_PULLUP);
   pinMode(SWITCH_B1,INPUT_PULLUP);
@@ -38,7 +40,8 @@ void setup()
   g_nextLEDONTimer = millis () + 500;
   g_nextLEDOFFTimer = millis () + 1000;
 
-  digitalWrite (LED, LOW);
+  digitalWrite (LED1, LOW);
+  digitalWrite (LED2, LOW);
 
   // open gates
   digitalWrite (DIR_B, HIGH);
@@ -51,12 +54,14 @@ void BlinkLED ()
 {
     if (millis () > g_nextLEDONTimer)
     {
-        digitalWrite(LED, g_LED);
+        digitalWrite(LED1, g_LED);
+        digitalWrite(LED2, g_LED);
         g_nextLEDONTimer = millis () + 1000;
     }
     if (millis () > g_nextLEDOFFTimer)
     {
-        digitalWrite(LED, LOW);
+        digitalWrite(LED1, LOW);
+        digitalWrite(LED2, LOW);
         g_nextLEDOFFTimer = millis () + 1000;
     }
 }
